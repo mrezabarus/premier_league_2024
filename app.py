@@ -88,7 +88,7 @@ with col2:
 #menggabungkan 2 dataframe
 df_perf = pd.merge(players, salaries, left_on="name", right_on="Player", how="inner")
 df_perf.rename(columns={'name':'player_name'}, inplace=True)
-st.subheader("Salaries VS Performance")
+st.subheader("Goal vs Gaji")
 chart_perf = alt.Chart(df_perf).mark_circle(size=60).encode(
     x=alt.X("Weekly", title="salaries"),
     y=alt.Y("goals", title="Total Goals"),
