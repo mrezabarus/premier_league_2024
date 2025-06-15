@@ -106,7 +106,8 @@ tab1, tab2= st.tabs([ "Filter Club", "Wage Distribution"])
 
 with tab1:
     club_options = sorted(salaries['Team'].unique())
-    selected_club = st.selectbox("Choose Club", club_options)
+    default_index = club_options.index("Liverpool") if "Liverpool" in club_options else 0
+    selected_club = st.selectbox("Choose Club", club_options, index=default_index)
 
     #filter
     filtered = salaries[salaries['Team'] == selected_club]
