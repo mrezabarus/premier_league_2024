@@ -42,7 +42,7 @@ chart = alt.Chart(df_goals).mark_bar(color='steelblue').encode(
 ).properties(
     width=600,
     height=400,
-    title='Top 10 Tim by Total Goals'
+    title='Top 10 Teams by Total Goals'
 )
 
 
@@ -58,18 +58,18 @@ with col1:
 salaries['Team'] = salaries['Team'].str.strip()
 highest_paid = salaries.loc[salaries.groupby('Team')['Weekly'].idxmax()][['Team','Player','Weekly']]
 highest_paid = highest_paid.rename(columns={
-    'Player': 'Pemain Gaji Tertinggi',
-    'Weekly': 'Gaji Tertinggi'
+    'Player': 'Highest Paid Player',
+    'Weekly': 'Highest Wage'
 })
 
 lowest_paid = salaries.loc[salaries.groupby('Team')['Weekly'].idxmin()][['Team','Player','Weekly']]
 lowest_paid = lowest_paid.rename(columns={
-    'Player': 'Pemain Gaji Terendah',
-    'Weekly': 'Gaji Terendah'
+    'Player': 'Lowest Paid Player',
+    'Weekly': 'Lowest Wage'
 })
 
 avg_wage = salaries.groupby('Team')['Weekly'].mean().reset_index()
-avg_wage = avg_wage.rename(columns={'Weekly':'Gaji Rata rata'})
+avg_wage = avg_wage.rename(columns={'Weekly':'Average Wage'})
 
 wage_summary = highest_paid.merge(lowest_paid, on='Team')
 wage_summary = wage_summary.merge(avg_wage, on='Team')
@@ -77,9 +77,9 @@ wage_summary = wage_summary.merge(avg_wage, on='Team')
 
 
 with col2:
-    st.subheader("Gaji Pemain di Klub")
+    st.subheader("Player Salary Summary per Club")
     st.dataframe(
-        wage_summary.sort_values(by="Gaji Rata rata", ascending=False).reset_index(drop=True),
+        wage_summary.sort_values(by="Average Wage", ascending=False).reset_index(drop=True),
         use_container_width=True,
         hide_index=True    
     )
@@ -88,7 +88,7 @@ with col2:
 #menggabungkan 2 dataframe
 df_perf = pd.merge(players, salaries, left_on="name", right_on="Player", how="inner")
 df_perf.rename(columns={'name':'player_name'}, inplace=True)
-st.subheader("Goal vs Gaji")
+st.subheader("Performance vs Salaries")
 chart_perf = alt.Chart(df_perf).mark_circle(size=60).encode(
     x=alt.X("Weekly", title="salaries"),
     y=alt.Y("goals", title="Total Goals"),
@@ -100,17 +100,17 @@ chart_perf = alt.Chart(df_perf).mark_circle(size=60).encode(
 st.altair_chart(chart_perf, use_container_width=True)
 
 
-tab1, tab2= st.tabs([ "Filter Klub", "Distribusi Gaji"])
+tab1, tab2= st.tabs([ "Filter Club", "Wage Distribution"])
 
 
 
 with tab1:
     club_options = sorted(salaries['Team'].unique())
-    selected_club = st.selectbox("Pilih Klub", club_options)
+    selected_club = st.selectbox("Choose Club", club_options)
 
     #filter
     filtered = salaries[salaries['Team'] == selected_club]
-    st.subheader(f"Pemain di {selected_club}")
+    st.subheader(f"Playes in {selected_club}")
     df_show = (
         filtered[['Player','Position','Weekly']]
         .sort_values(by='Weekly', ascending=False)
@@ -124,9 +124,9 @@ with tab2:
 
     # Tampilkan
     #st.altair_chart(chart, use_container_width=True)
-    st.subheader("Distribusi gaji per posisi")
+    st.subheader("Distribution wage per Position")
     fig, ax = plt.subplots(figsize=(10,3))
-    sns.boxplot(data=salaries.merge(players, left_on="Player", right_on="name", how="inner"), x='position', y='Weekly', ax=ax)
+    sns.boxplot(data=salaries.merge(players, left_on="Player", right_on="name", how="inner"), x='Position', y='Weekly', ax=ax)
     plt.xticks(rotation=45)
     st.pyplot(fig)
     
