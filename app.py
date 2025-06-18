@@ -14,6 +14,8 @@ st.title("Premier League 2025 Dashboard")
 fixtures = pd.read_csv("fixtures.csv")
 players = pd.read_csv("player_stats.csv")
 salaries = pd.read_csv("player_salaries.csv")
+team_salary = pd.read_csv("team_salary.csv")
+standing = pd.read_csv("standings.csv")
 
 
 ### TOP 10 Team Goals
@@ -77,7 +79,7 @@ wage_summary = wage_summary.merge(avg_wage, on='Team')
 
 
 with col2:
-    st.subheader("Player Salary Summary per Club")
+    st.subheader("Summary of Player Salaries by Club")
     st.dataframe(
         wage_summary.sort_values(by="Average Wage", ascending=False).reset_index(drop=True),
         use_container_width=True,
@@ -100,20 +102,23 @@ chart_perf = alt.Chart(df_perf).mark_circle(size=60).encode(
 st.altair_chart(chart_perf, use_container_width=True)
 
 
-tab1, tab2= st.tabs([ "Filter Club", "Wage Distribution"])
+tab1, tab2, tab3, tab4= st.tabs([ "Filter Club", "Wage Distribution" ,"Salaries vs Rank", "compare two clubs salaries"])
 
 
 
 with tab1:
-    club_options = sorted(salaries['Team'].unique())
+    stats_with_salaries = pd.merge(players, salaries, left_on="name", right_on="Player", how="inner").reset_index()
+    result_stats_with_salaries = stats_with_salaries[['Player','nation','Position','Team','age','played','starts','minutes','Weekly']]
+    
+    club_options = sorted(result_stats_with_salaries['Team'].unique())
     default_index = club_options.index("Liverpool") if "Liverpool" in club_options else 0
     selected_club = st.selectbox("Choose Club", club_options, index=default_index)
 
     #filter
-    filtered = salaries[salaries['Team'] == selected_club]
-    st.subheader(f"Playes in {selected_club}")
+    filtered = result_stats_with_salaries[result_stats_with_salaries['Team'] == selected_club]
+    st.subheader(f"Played in {selected_club}")
     df_show = (
-        filtered[['Player','Position','Weekly']]
+        filtered[['Player','Position','age','played','starts','minutes','Weekly']]
         .sort_values(by='Weekly', ascending=False)
         .reset_index(drop=True)
     )
@@ -130,4 +135,51 @@ with tab2:
     sns.boxplot(data=salaries.merge(players, left_on="Player", right_on="name", how="inner"), x='Position', y='Weekly', ax=ax)
     plt.xticks(rotation=45)
     st.pyplot(fig)
+
+with tab3:
+    standing_vs_salary = pd.merge(standing, team_salary, left_on="team", right_on="team", how="inner").reset_index(drop=True).sort_values(by="weekly", ascending=False)
+    result = standing_vs_salary[['rank','team','win','loss','draw','goals','conceded','top_scorer','keeper','players','weekly','annual']]
+    st.dataframe(result)
     
+with tab4:
+
+    stats_with_salaries_a = pd.merge(players, salaries, left_on="name", right_on="Player", how="inner").reset_index()
+    result_stats_with_salaries_a = stats_with_salaries_a[['Player','nation','Position','Team','age','played','starts','minutes','Weekly']]
+
+    col1, col2 = st.columns(2)
+    
+    with col1:    
+        club_options_a = sorted(result_stats_with_salaries_a['Team'].unique())
+        default_index_a = club_options_a.index("Liverpool") if "Liverpool" in club_options_a else 0
+        st.container()
+        selected_club_a = st.selectbox("Choose First Club", club_options_a, index=default_index_a)
+
+        #filter
+        filtered = result_stats_with_salaries_a[result_stats_with_salaries_a['Team'] == selected_club_a]
+        st.subheader(f"Played in {selected_club}")
+        df_show = (
+            filtered[['Player','Position','age','played','starts','minutes','Weekly']]
+            .sort_values(by='Weekly', ascending=False)
+            .reset_index(drop=True)
+        )
+        df_show.index = df_show.index + 1
+        df_show.index.name = 'No'
+        st.dataframe(df_show)
+    
+    with col2:    
+        club_options_b = sorted(result_stats_with_salaries_a['Team'].unique())
+        default_index_b = club_options_b.index("Liverpool") if "Liverpool" in club_options_b else 0
+        st.container()
+        selected_club_b = st.selectbox("Choose Second Club", club_options_b, index=default_index_b)
+
+        #filter
+        filtered = result_stats_with_salaries_a[result_stats_with_salaries_a['Team'] == selected_club_b]
+        st.subheader(f"Played in {selected_club_b}")
+        df_show = (
+            filtered[['Player','Position','age','played','starts','minutes','Weekly']]
+            .sort_values(by='Weekly', ascending=False)
+            .reset_index(drop=True)
+        )
+        df_show.index = df_show.index + 1
+        df_show.index.name = 'No'
+        st.dataframe(df_show)
